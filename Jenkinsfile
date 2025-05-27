@@ -35,7 +35,7 @@ pipeline {
             steps {
                 script {
                     def dockerx = new org.iti.docker()
-                    dockerx.build("java", "${params.VERSION}")
+                    dockerx.build("mahmoudeltabakh/mahmoud-reda", "${params.VERSION}")
                 }
 
                 withCredentials([
