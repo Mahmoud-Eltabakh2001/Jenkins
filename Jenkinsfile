@@ -24,7 +24,7 @@ pipeline {
             }
         }
 
-        stage("Build Java App") {
+        stage("Build Python App") {
             steps {
                 echo '🔨 Building Java application...'
                 script {
