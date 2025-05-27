@@ -31,7 +31,7 @@ pipeline {
             }
         }
 
-        stage("build java app image") {
+        stage("Build & Login Docker Image") {
             steps {
                 script {
                     def dockerx = new org.iti.docker()
@@ -41,20 +41,20 @@ pipeline {
                 withCredentials([
                     usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')
                 ]) {
-                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                 }
             }
         }
 
-        stage("push java app image") {
+        stage("Push Docker Image") {
             steps {
                 withCredentials([
                     usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')
                 ]) {
                     script {
                         def dockerx = new org.iti.docker()
-                        dockerx.login("${DOCKER_USER}", "${DOCKER_PASS}")
-                        dockerx.push("${DOCKER_USER}", "${DOCKER_PASS}")
+                        dockerx.login(DOCKER_USER, DOCKER_PASS)
+                        dockerx.push(DOCKER_USER, DOCKER_PASS)
                     }
                 }
             }
