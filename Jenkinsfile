@@ -18,8 +18,7 @@ pipeline {
         stage("VM info") {
             steps {
                 script {
-                    def VM_IP = vmIp()
-                    sh "echo ${VM_IP}"
+                    sh "hostname -I"  // أو استخدم "ip a" لو عايز معلومات أكثر
                 }
             }
         }
