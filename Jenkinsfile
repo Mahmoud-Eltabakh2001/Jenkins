@@ -11,50 +11,47 @@ pipeline {
     }
 
     parameters {
-        string defaultValue: '${BUILD_NUMBER}', description: 'Enter the version of the docker image', name: 'VERSION'
-        choice choices: ['true', 'false'], description: 'Skip test', name: 'TEST'
+        string(name: 'VERSION', defaultValue: '${BUILD_NUMBER}', description: 'Enter the version of the docker image')
+        choice(name: 'TEST', choices: ['true', 'false'], description: 'Skip tests during build')
     }
 
     stages {
-        stage("VM info") {
+
+        stage("VM Info") {
             steps {
+                echo '🖥️ Displaying VM IP...'
                 sh "hostname -I"
             }
         }
 
-        stage("Build java app") {
+        stage("Build Java App") {
             steps {
+                echo '🔨 Building Java application...'
                 script {
-                    sayHello "ITI"
+                    sayHello("ITI")
                 }
                 sh "mvn clean package install -Dmaven.test.skip=${params.TEST}"
             }
         }
 
-        stage("Build & Login Docker Image") {
+        stage("Build Docker Image") {
             steps {
+                echo '🐳 Building Docker image...'
                 script {
                     def dockerx = new org.iti.docker()
                     dockerx.build("mahmoudeltabakh/mahmoud-reda", "${params.VERSION}")
                 }
-
-                withCredentials([
-                    usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')
-                ]) {
-                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                }
             }
         }
 
-        stage("Push Docker Image") {
+        stage("Login & Push Docker Image") {
             steps {
-                withCredentials([
-                    usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')
-                ]) {
+                echo '🔐 Logging into DockerHub and pushing image...'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     script {
                         def dockerx = new org.iti.docker()
                         dockerx.login(DOCKER_USER, DOCKER_PASS)
-                        dockerx.push(DOCKER_USER, DOCKER_PASS)
+                        dockerx.push("mahmoudeltabakh/mahmoud-reda", "${params.VERSION}")
                     }
                 }
             }
@@ -63,11 +60,15 @@ pipeline {
 
     post {
         always {
-            echo 'Clean the Workspace'
+            echo '🧹 Cleaning workspace...'
             cleanWs()
         }
         failure {
-            echo 'Build failed'
+            echo '❌ Build failed.'
+        }
+        success {
+            echo '✅ Pipeline completed successfully!'
         }
     }
 }
+
